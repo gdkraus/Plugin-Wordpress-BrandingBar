@@ -150,25 +150,86 @@ class NcstateBrandingBar
     public function outputBar()
     {
         echo '<style type="text/css">
-            #ncstate-branding-bar-container {
-                padding: 0px;
-                line-height: 0px;
-                margin: 0px;
-                display: none;
+            #ncstate-branding-bar-container{
+                display:none;
+            }
+            #ncstate-responsive-branding-bar{
+                background-color:#e1e1e1;
+            }
+            #ncstate-responsive-branding-bar select{
+                width:80%;
+                font-size: 1em;
+            }
+            #ncstate-responsive-branding-bar input{
+                width:17%;
+                font-size: 1em;
             }
             #ncstate-branding-bar-container h2 {
                 position: absolute;
                 left: -10000px;
             }
+            .ncstate-branding-bar-off-screen{
+                left:-999px;
+                position:absolute;
+                top:auto;
+                width:1px;
+                height:1px;
+                overflow:scroll;
+                z-index:-999;
+            }
+            @media only screen and (min-width: 761px){
+                #ncstate-branding-bar-container {
+                    padding: 0px;
+                    line-height: 0px;
+                    margin: 0px;
+                    display: block;
+                }
+                #ncstate-branding-bar-container h2 {
+                    position: absolute;
+                    left: -10000px;
+                }
+                #ncstate-responsive-branding-bar{
+                    display:none;
+                }
+                #ncstate-branding-bar-container{
+                    display:block;
+                }
+            }
             </style>';
 
         echo '<script type="text/javascript">
             jQuery("document").ready(function() {
-                jQuery("#ncstate-branding-bar-container").show();
                 jQuery("' . $this->_position . '").prepend(jQuery("#ncstate-branding-bar-container"));
+                jQuery("' . $this->_position . '").prepend(jQuery("#ncstate-responsive-branding-bar"));
             });
             </script>
         ';
+
+        echo '<form id="ncstate-responsive-branding-bar" action="http://www.ncsu.edu/_includes/nav-submit.php" method="POST" name="responsive-nav-form">
+            <label for="responsive-nav-select" class="ncstate-branding-bar-off-screen">University Navigation</label>
+            <select name="responsive-nav-select" id="responsive-nav-select">
+                <optgroup label="University Navigation">
+                    <option value="http://www.ncsu.edu/directory/">Find People</option>
+                    <option value="http://www.lib.ncsu.edu/">Libraries</option>
+                    <option value="http://news.ncsu.edu/">News</option>
+                    <option value="http://www.ncsu.edu/calendar/">Calendar</option>
+                    <option value="http://mypack.ncsu.edu/">MyPack Portal</option>
+                    <option value="http://giving.ncsu.edu/">Giving</option>
+                    <option value="http://www.ncsu.edu/campus_map/">Campus Map</option>
+                </optgroup>
+                <optgroup label="Services Navigation">
+                    <option value="http://www.ncsu.edu/emergency-information/index.php">Emergency Information</option>
+                    <option value="http://www.ncsu.edu/privacy/index.php">Privacy</option>
+                    <option value="http://www.ncsu.edu/copyright/index.php">Copyright</option>
+                    <option value="http://www.ncsu.edu/diversity">Diversity</option>
+                    <option value="http://policies.ncsu.edu">University Policies</option>
+                    <option value="https://jobs.ncsu.edu/">Jobs</option>
+                </optgroup>
+            </select>
+
+            <input type="submit" value="Go" name="rwd-submit">
+
+        </form>';
 
         echo '<div id="ncstate-branding-bar-container">';
         echo '   <h2>NC State Branding Bar</h2>';
