@@ -83,6 +83,49 @@ class NcstateBrandingBar
             wp_enqueue_script('jquery');
         }
     }
+	
+	/* Code for pulling rendered html and css from web comm brand bar and pulling out what we need */
+	
+	public function getLogoOnly() {
+		$url = $this->_bb->getIframeHtml();
+		$frameContents = file_get_contents($url);
+		$frameContentsXml = simplexml_load_string($frameContents);
+		$linkArray = $frameContentsXml->head->link->attributes();
+		$urlPrefix = substr($url, 0, strpos($url, "index.php"));
+		
+		$css = $this->parseCSS($urlPrefix . $linkArray['href'][0]);
+		 
+		$backgroundValue = $css['div#utility_bar div.logo']['background'];
+		$backgroundValueClean = substr($backgroundValue, 0, strpos($backgroundValue, ")"));
+		$backgroundValueClean = strstr($backgroundValueClean, '/');
+		 
+		$logoPath = $urlPrefix . $backgroundValueClean;	
+		
+		return $logoPath;	
+	}
+	
+	public function parseCSS($file){
+		$css = file_get_contents($file);
+		preg_match_all( '/(?ims)([a-z0-9\s\.\:#_\-@,]+)\{([^\}]*)\}/', $css, $arr);
+		$result = array();
+		foreach ($arr[0] as $i => $x){
+			$selector = trim($arr[1][$i]);
+			$rules = explode(';', trim($arr[2][$i]));
+			$rules_arr = array();
+			foreach ($rules as $strRule){
+				if (!empty($strRule)){
+					$rule = explode(":", $strRule);
+					$rules_arr[trim($rule[0])] = trim($rule[1]);
+				}
+			}
+	 
+			$selectors = explode(',', trim($selector));
+			foreach ($selectors as $strSel){
+				$result[$strSel] = $rules_arr;
+			}
+		}
+		return $result;
+	}
 
     /**
      * Creates an admin menu item in the settings list
@@ -147,22 +190,12 @@ class NcstateBrandingBar
      * Outputs the HTML for the branding bar.
      *
      */
-    public function outputBar()
+   public function outputBar()
     {
-        echo '<style type="text/css">
+		
+		echo '<style type="text/css">
             #ncstate-branding-bar-container{
                 display:none;
-            }
-            #ncstate-responsive-branding-bar{
-                background-color:#e1e1e1;
-            }
-            #ncstate-responsive-branding-bar select{
-                width:80%;
-                font-size: 1em;
-            }
-            #ncstate-responsive-branding-bar input{
-                width:17%;
-                font-size: 1em;
             }
             #ncstate-branding-bar-container h2 {
                 position: absolute;
@@ -177,6 +210,9 @@ class NcstateBrandingBar
                 overflow:scroll;
                 z-index:-999;
             }
+			#ncstate-responsive-branding-bar {
+				width:100%;}
+			
             @media only screen and (min-width: 761px){
                 #ncstate-branding-bar-container {
                     padding: 0px;
@@ -205,39 +241,18 @@ class NcstateBrandingBar
             </script>
         ';
 
-        echo '<form id="ncstate-responsive-branding-bar" action="http://www.ncsu.edu/_includes/nav-submit.php" method="POST" name="responsive-nav-form">
-            <label for="responsive-nav-select" class="ncstate-branding-bar-off-screen">University Navigation</label>
-            <select name="responsive-nav-select" id="responsive-nav-select">
-                <optgroup label="University Navigation">
-                    <option value="http://www.ncsu.edu/directory/">Find People</option>
-                    <option value="http://www.lib.ncsu.edu/">Libraries</option>
-                    <option value="http://news.ncsu.edu/">News</option>
-                    <option value="http://www.ncsu.edu/calendar/">Calendar</option>
-                    <option value="http://mypack.ncsu.edu/">MyPack Portal</option>
-                    <option value="http://giving.ncsu.edu/">Giving</option>
-                    <option value="http://www.ncsu.edu/campus_map/">Campus Map</option>
-                </optgroup>
-                <optgroup label="Services Navigation">
-                    <option value="http://www.ncsu.edu/emergency-information/index.php">Emergency Information</option>
-                    <option value="http://www.ncsu.edu/privacy/index.php">Privacy</option>
-                    <option value="http://www.ncsu.edu/copyright/index.php">Copyright</option>
-                    <option value="http://www.ncsu.edu/diversity">Diversity</option>
-                    <option value="http://policies.ncsu.edu">University Policies</option>
-                    <option value="https://jobs.ncsu.edu/">Jobs</option>
-                </optgroup>
-            </select>
 
-            <input type="submit" value="Go" name="rwd-submit">
-
-        </form>';
-
+        echo '<div id="ncstate-responsive-branding-bar">';
+		echo '</div>';
         echo '<div id="ncstate-branding-bar-container">';
         echo '   <h2>NC State Branding Bar</h2>';
+		//echo '<img src="' . $this->getLogoOnly() . '" />';
         echo $this->_bb->getIframeHtml();
         echo '</div>';
     }
+	
+	
 }
-
 
 // Start this plugin
 add_action(
